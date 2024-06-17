@@ -22,19 +22,17 @@ CYAN = display.create_pen(0, 255, 255)
 MAGENTA = display.create_pen(255, 0, 255)
 YELLOW = display.create_pen(255, 255, 0)
 GREEN = display.create_pen(0, 255, 0)
-
-class Hand():
-    dice = []
-    
-    def add_dice(number_of_sides):
-        dice.append(Dice(number_of_sides))
     
 class Dice():
-    def __init__(number_of_sides):
+    def __init__(self, number_of_sides):
         self.number_of_sides = number_of_sides
     
     def roll_dice(self):
         return randint(1, self.number_of_sides)
+
+
+hand = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
+hand_string = ['__','__','__','__','__'] 
 
 
 # sets up a handy function we can call to clear the screen
@@ -43,15 +41,52 @@ def clear():
     display.clear()
     display.update()
     
+def check_hand_string(hand, hand_string):
+    for i in range(len(hand)):
+        if 'D' + str(hand[i].number_of_sides) != hand_string[i]:
+            hand_string[i] = 'D' + str(hand[i].number_of_sides)
+    
 def hand_view(): # here goes the logic for  adding dice to the player hand
     clear()
+    hand_string = []
+    hand_idx = 0
+    selected_no_sides = 0
+    available_sides = [2, 4, 6, 8, 10, 12, 20]
+    for dice in hand:
+        if dice.number_of_sides == 0:
+            hand_string.append('D0')
+        else:
+            hand_string.append('D' + str(dice.number_of_sides))
     while True:
+
         if button_b.read():
             return  clear()
+        if button_a.read():
+            selected_no_sides = selected_no_sides + 1
+            if selected_no_sides >= len(available_sides):
+                selected_no_sides = 0
+            clear()
+        if button_x.read():
+            hand_idx = hand_idx + 1
+            if hand_idx == 5:
+                hand_idx = 0
+            clear()
+        if button_y.read():
+            if hand[hand_idx].number_of_sides == 0:
+                hand[hand_idx] = Dice(available_sides[selected_no_sides])
+                clear()
+            else:
+                hand[hand_idx] = Dice(0)
+                clear()
+            check_hand_string(hand, hand_string)
         display.set_pen(GREEN)
         display.text("<- back", 10, 167, wordwrap=240, scale=2)
-        display.text("hand", 10, 45, wordwrap=240, scale=3)
+        display.text(str(hand_string), 15, 100, wordwrap=300, scale=3)
+        display.text('D' + str(available_sides[selected_no_sides]), 10, 45, wordwrap=240, scale=2)
+        display.text("h_idx" + str(hand_idx), 195, 45, wordwrap=240, scale=2)
         display.update()
+
+
         
         
 def roll_view(): # here goes the logic for checking the dice in the hand and rolling the dice and summing the total of the dice. 
