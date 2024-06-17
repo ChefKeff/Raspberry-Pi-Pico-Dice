@@ -58,7 +58,6 @@ def hand_view(): # here goes the logic for  adding dice to the player hand
         else:
             hand_string.append('D' + str(dice.number_of_sides))
     while True:
-
         if button_b.read():
             return  clear()
         if button_a.read():
@@ -86,23 +85,30 @@ def hand_view(): # here goes the logic for  adding dice to the player hand
         display.text("h_idx" + str(hand_idx), 195, 45, wordwrap=240, scale=2)
         display.update()
 
-
-        
-        
 def roll_view(): # here goes the logic for checking the dice in the hand and rolling the dice and summing the total of the dice. 
     clear()
-    while True: 
+    count_empty = 0
+    rolls = []
+    while True:
+        for dice in hand:
+            if dice.number_of_sides == 0:
+                count_empty = count_empty + 1
         if button_b.read():
             return clear()
-        if Hand.dice == []:
-            display.set_pen(MAGENTA)
-            display.text("<- back", 10, 167, wordwrap=240, scale=2)
-            display.text("No dice! There are no dice in the player's hand. Please add some in the 'hand'-view from the main menu.", 10, 45, wordwrap=240, scale=2)
-            display.update()
+        #if count_empty > 4:
+        #    display.set_pen(MAGENTA)
+        #    display.text("<- back", 10, 167, wordwrap=240, scale=2)
+        #    display.text("No dice! There are no dice in the player's hand. Please add some in the 'hand'-view from the main menu.", 10, 45, wordwrap=240, scale=2)
+        #    display.update()
             
         else:
             display.set_pen(MAGENTA)
-            display.text("roll", 10, 45, wordwrap=240, scale=3)
+            if button_x.read():
+                for dice in hand:
+                    if dice.number_of_sides != 0:
+                        rolls.append(dice.roll_dice())
+                clear()
+            display.text(str(rolls) + 'sum ' + str(sum(rolls)), 10, 45, wordwrap=240, scale=2)
             display.update()
     
 def history_view():
