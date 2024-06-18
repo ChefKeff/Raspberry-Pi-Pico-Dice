@@ -32,7 +32,8 @@ class Dice():
 
 
 hand = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
-hand_string = ['__','__','__','__','__'] 
+hand_string = ['__','__','__','__','__']
+history = []
 
 
 # sets up a handy function we can call to clear the screen
@@ -88,7 +89,7 @@ def hand_view(): # here goes the logic for  adding dice to the player hand
 def roll_view(): # here goes the logic for checking the dice in the hand and rolling the dice and summing the total of the dice. 
     clear()
     count_empty = 0
-    rolls = []
+    roll_mode = False
     while True:
         for dice in hand:
             if dice.number_of_sides == 0:
@@ -101,21 +102,37 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
         #    display.text("No dice! There are no dice in the player's hand. Please add some in the 'hand'-view from the main menu.", 10, 45, wordwrap=240, scale=2)
         #    display.update()
             
-        else:
-            display.set_pen(MAGENTA)
-            if button_x.read():
+        display.set_pen(MAGENTA)
+        if button_y.read():
+            if not roll_mode:
+                clear()
+                roll_mode = True
+            elif roll_mode:
+                rolls = []
+                roll_string = []
+                dice_on_hand = []
                 for dice in hand:
                     if dice.number_of_sides != 0:
+                        dice_on_hand.append(dice.number_of_sides)
                         rolls.append(dice.roll_dice())
-                clear()
-            display.text(str(rolls) + 'sum ' + str(sum(rolls)), 10, 45, wordwrap=240, scale=2)
-            display.update()
+                        
+                for i in range(len(rolls)):
+                    roll_string.append('D' + str(dice_on_hand[i]) + ': ' + str(rolls[i]))
+                    
+                history.append(roll_string)
+                
+                roll_string.append('sum of rolls: ' + str(sum(rolls)))
+                display.text(str(roll_string), 10, 45, wordwrap=185, scale=3)
+                display.update()
+                roll_mode = False
+        display.update()
     
 def history_view():
     clear()
     while True:
         display.set_pen(WHITE)
         display.text("history", 10, 45, wordwrap=240, scale=3)
+        display.text(str(history), 10, 45, wordwrap=240, scale=3)
         display.update()
     
     
