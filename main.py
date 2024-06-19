@@ -93,7 +93,7 @@ def hand_view(): # here goes the logic for adding dice to the player hand THIS I
                 hand_idx = hand_idx + 1
                 if hand_idx == 5:
                     hand_idx = 0
-                clear()
+                display.clear()
             else:
                 hand[hand_idx] = Dice(0)
                 clear()
@@ -160,7 +160,8 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
                 roll_mode = True
         while roll_mode:
             print(roll_hand[roll_idx].number_of_sides)
-            clear()
+            display.set_pen(BLACK)
+            display.clear()
             display.set_pen(MAGENTA)
             for i in range(len(rolls)):
                 display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 45, scale=5)
@@ -181,7 +182,7 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
                 else:
                     roll_idx = roll_idx + 1
                 
-            time.sleep(0.1)
+            time.sleep(0.01)
             display.update()
         display.update()
     
