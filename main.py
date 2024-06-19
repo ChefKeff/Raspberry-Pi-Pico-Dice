@@ -3,13 +3,18 @@
 import time
 from random import randint
 from pimoroni import Button
-from picographics import PicoGraphics, DISPLAY_PICO_DISPLAY_2, PEN_P4
+import pngdec
+from picographics import PicoGraphics, DISPLAY_PICO_DISPLAY_2, PEN_RGB332
 
 # We're only using a few colours so we can use a 4 bit/16 colour palette and save RAM!
-display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2, pen_type=PEN_P4, rotate=0)
+display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2, pen_type=PEN_RGB332, rotate=0)
 
-display.set_backlight(0.5)
+display.set_backlight(1)
 display.set_font("bitmap8")
+png = pngdec.PNG(display)
+png_paths = ["user.png", "clock.png", "dice.png", "wrench.png"]
+png_placement = [[0,0],[230,0],[0,150],[230,150]]
+
 
 button_a = Button(12)
 button_b = Button(13)
@@ -47,7 +52,24 @@ def check_hand_string(hand, hand_string):
         if 'D' + str(hand[i].number_of_sides) != hand_string[i]:
             hand_string[i] = 'D' + str(hand[i].number_of_sides)
     
-def hand_view(): # here goes the logic for  adding dice to the player hand
+def hand_view(): # here goes the logic for adding dice to the player hand
+    hand_png_paths = ["back.png"]
+    hand_png_placement = [[0,195]]
+    line_placement = [{'x1': 8,
+                       'y': 180,
+                       'x2': 66},
+                      {'x1': 70,
+                       'y': 180,
+                       'x2': 128},
+                      {'x1': 132,
+                       'y': 180,
+                       'x2': 190},
+                      {'x1': 194,
+                       'y': 180,
+                       'x2': 252},
+                      {'x1': 256,
+                       'x2': 314,
+                       'y': 180}]
     clear()
     hand_string = []
     hand_idx = 0
@@ -59,19 +81,19 @@ def hand_view(): # here goes the logic for  adding dice to the player hand
         else:
             hand_string.append('D' + str(dice.number_of_sides))
     while True:
-        if button_b.read():
+        if button_b.read(): # go back to main
             return  clear()
-        if button_a.read():
+        if button_a.read(): # change the number of sides of the dice to add
             selected_no_sides = selected_no_sides + 1
             if selected_no_sides >= len(available_sides):
                 selected_no_sides = 0
             clear()
-        if button_x.read():
+        if button_x.read(): # traverse the hand
             hand_idx = hand_idx + 1
             if hand_idx == 5:
                 hand_idx = 0
             clear()
-        if button_y.read():
+        if button_y.read(): # add dice to hand
             if hand[hand_idx].number_of_sides == 0:
                 hand[hand_idx] = Dice(available_sides[selected_no_sides])
                 clear()
@@ -79,9 +101,21 @@ def hand_view(): # here goes the logic for  adding dice to the player hand
                 hand[hand_idx] = Dice(0)
                 clear()
             check_hand_string(hand, hand_string)
+        for i in range(len(hand_png_paths)):
+            png.open_file(hand_png_paths[i])
+            png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(GREEN)
-        display.text("<- back", 10, 167, wordwrap=240, scale=2)
-        display.text(str(hand_string), 15, 100, wordwrap=300, scale=3)
+        for line_idx in range(len(line_placement)):
+            line_coords = line_placement[line_idx]
+            print(line_coords)
+            if line_idx != hand_idx:
+                display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 2)
+            else:
+                display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 8)
+        for i in range(len(hand_string)):
+            if hand_string[i] != 'D0':
+                display.text(hand_string[i], line_placement[i]['x1'], line_placement[i]['y'] - 35, scale=3)
+                
         display.text('D' + str(available_sides[selected_no_sides]), 10, 45, wordwrap=240, scale=2)
         display.text("h_idx" + str(hand_idx), 195, 45, wordwrap=240, scale=2)
         display.update()
@@ -134,6 +168,8 @@ def history_view():
         display.text("history", 10, 45, wordwrap=240, scale=3)
         display.text(str(history), 10, 45, wordwrap=240, scale=3)
         display.update()
+        if button_b.read():
+            return clear()
     
     
 
@@ -151,20 +187,14 @@ while True:
     elif button_x.read():
         history_view()
     elif button_y.read():
-        clear()
-        display.set_pen(YELLOW)
-        display.text("Button Y pressed", 10, 10, 240, 4)
-        display.update()
-        time.sleep(1)
-        clear()
+        settings_view()
     else:
-        display.set_pen(GREEN)
-        display.text("hand", 10, 45, wordwrap=240, scale=3)
-        display.set_pen(MAGENTA)
-        display.text("roll", 10, 167, wordwrap=240, scale=3)
-        display.set_pen(WHITE)
-        display.text("history", 195, 45, wordwrap=240, scale=3)
-        display.set_pen(CYAN)
-        display.text("clear", 230, 167, wordwrap=240, scale=3)
+        # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
+        # You can use Thonny to transfer PNG Images to your Pico.
+        for i in range(len(png_paths)):
+            png.open_file(png_paths[i])
+            png.decode(png_placement[i][0], png_placement[i][1], scale=10)
+        # Decode our PNG file and set the X and Y
         display.update()
+    
     time.sleep(0.1)  # this number is how frequently the Pico checks for button presses
