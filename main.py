@@ -37,8 +37,23 @@ class Dice():
 
 
 hand = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
-hand_string = ['__','__','__','__','__']
+hand_string = ['D0', 'D0', 'D0', 'D0', 'D0']
 history = []
+line_placement = [{'x1': 8,
+                   'y': 180,
+                   'x2': 66},
+                  {'x1': 70,
+                   'y': 180,
+                   'x2': 128},
+                  {'x1': 132,
+                   'y': 180,
+                   'x2': 190},
+                  {'x1': 194,
+                   'y': 180,
+                   'x2': 252},
+                  {'x1': 256,
+                   'x2': 314,
+                   'y': 180}]
 
 
 # sets up a handy function we can call to clear the screen
@@ -55,31 +70,10 @@ def check_hand_string(hand, hand_string):
 def hand_view(): # here goes the logic for adding dice to the player hand THIS IS DONE!
     hand_png_paths = ["back.png", "right.png", "add.png", "remove.png"]
     hand_png_placement = [[0,195], [275, 0], [275, 195], [275, 195]]
-    line_placement = [{'x1': 8,
-                       'y': 180,
-                       'x2': 66},
-                      {'x1': 70,
-                       'y': 180,
-                       'x2': 128},
-                      {'x1': 132,
-                       'y': 180,
-                       'x2': 190},
-                      {'x1': 194,
-                       'y': 180,
-                       'x2': 252},
-                      {'x1': 256,
-                       'x2': 314,
-                       'y': 180}]
     clear()
-    hand_string = []
     hand_idx = 0
     selected_no_sides = 0
     available_sides = [2, 4, 6, 8, 10, 12, 20]
-    for dice in hand:
-        if dice.number_of_sides == 0:
-            hand_string.append('D0')
-        else:
-            hand_string.append('D' + str(dice.number_of_sides))
     while True:
         if button_b.read(): # go back to main
             return  clear()
@@ -128,49 +122,86 @@ def hand_view(): # here goes the logic for adding dice to the player hand THIS I
         display.update()
 
 def roll_view(): # here goes the logic for checking the dice in the hand and rolling the dice and summing the total of the dice. 
-    hand_png_paths = ["back.png"]
-    hand_png_placement = [[0, 195]]
+    hand_png_paths = ["back.png", "dice.png"]
+    hand_png_placement = [[0, 195], [275, 195]]
+    roll_hand = []
+    for dice in hand:
+        if dice.number_of_sides != 0:
+            roll_hand.append(dice)
     count_empty = 0
+    roll_idx = 0
     roll_mode = False
+    big = True
     clear()
     while True:
-        for dice in hand:
-            if dice.number_of_sides == 0:
-                count_empty = count_empty + 1
         if button_b.read():
             return clear()
-            
+        
+        for i in range(len(hand_png_paths)):
+            png.open_file(hand_png_paths[i])
+            png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(MAGENTA)
+        try:
+            for i in range(len(rolls)):
+                display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 65, scale=3)
+            display.text('sum: ' + str(sum(rolls)), 50 , 50, scale=5)
+        except:
+            print('no rolls yet')
+        for line_idx in range(len(line_placement)):
+            line_coords = line_placement[line_idx]
+            display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 2)
+        for i in range(len(hand_string)):
+            if hand_string[i] != 'D0':
+                display.text(hand_string[i], line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
         if button_y.read():
             if not roll_mode:
+                rolls = []
                 clear()
                 roll_mode = True
-            elif roll_mode:
-                rolls = []
-                roll_string = []
-                dice_on_hand = []
-                for dice in hand:
-                    if dice.number_of_sides != 0:
-                        dice_on_hand.append(dice.number_of_sides)
-                        rolls.append(dice.roll_dice())
-                        
-                for i in range(len(rolls)):
-                    roll_string.append('D' + str(dice_on_hand[i]) + ': ' + str(rolls[i]))
-                    
-                history.append(roll_string)
+        while roll_mode:
+            print(roll_hand[roll_idx].number_of_sides)
+            clear()
+            display.set_pen(MAGENTA)
+            for i in range(len(rolls)):
+                display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 45, scale=5)
+            dice = roll_hand[roll_idx]
+            random = dice.roll_dice()
+            display.text(str(random), 50, 50, scale=20)          
+            if button_y.read():
+                if dice.number_of_sides != 0:
+                    rolls.append(dice.roll_dice())
+                    display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 45, scale=5)
+                if roll_idx == len(roll_hand)-1:
+                    roll_idx = 0
+                    clear()
+                    if len(history) == 5:
+                        history.pop(0)
+                    history.append(rolls)
+                    roll_mode = False
+                else:
+                    roll_idx = roll_idx + 1
                 
-                roll_string.append('sum of rolls: ' + str(sum(rolls)))
-                display.text(str(roll_string), 10, 45, wordwrap=185, scale=3)
-                display.update()
-                roll_mode = False
+            time.sleep(0.1)
+            display.update()
         display.update()
     
 def history_view():
     clear()
     while True:
         display.set_pen(WHITE)
-        display.text("history", 10, 45, wordwrap=240, scale=3)
-        display.text(str(history), 10, 45, wordwrap=240, scale=3)
+        i = 0
+        for roll in history[::-1]:
+            display.text(str(roll) + ' sum: ' + str(sum(roll)), 10, 45 + i, wordwrap=310, scale=3)
+            i = i + 30
+        display.update()
+        if button_b.read():
+            return clear()
+        
+def settings_view():
+    clear()
+    while True:
+        display.set_pen(WHITE)
+        display.text("settings", 10, 45, wordwrap=240, scale=3)
         display.update()
         if button_b.read():
             return clear()
