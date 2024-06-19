@@ -13,7 +13,7 @@ display.set_backlight(1)
 display.set_font("bitmap8")
 png = pngdec.PNG(display)
 png_paths = ["user.png", "clock.png", "dice.png", "wrench.png"]
-png_placement = [[0,0],[230,0],[0,150],[230,150]]
+png_placement = [[0, 0], [230, 0], [0, 150], [230, 150]]
 
 
 button_a = Button(12)
@@ -52,9 +52,9 @@ def check_hand_string(hand, hand_string):
         if 'D' + str(hand[i].number_of_sides) != hand_string[i]:
             hand_string[i] = 'D' + str(hand[i].number_of_sides)
     
-def hand_view(): # here goes the logic for adding dice to the player hand
-    hand_png_paths = ["back.png"]
-    hand_png_placement = [[0,195]]
+def hand_view(): # here goes the logic for adding dice to the player hand THIS IS DONE!
+    hand_png_paths = ["back.png", "right.png", "add.png", "remove.png"]
+    hand_png_placement = [[0,195], [275, 0], [275, 195], [275, 195]]
     line_placement = [{'x1': 8,
                        'y': 180,
                        'x2': 66},
@@ -96,18 +96,20 @@ def hand_view(): # here goes the logic for adding dice to the player hand
         if button_y.read(): # add dice to hand
             if hand[hand_idx].number_of_sides == 0:
                 hand[hand_idx] = Dice(available_sides[selected_no_sides])
+                hand_idx = hand_idx + 1
+                if hand_idx == 5:
+                    hand_idx = 0
                 clear()
             else:
                 hand[hand_idx] = Dice(0)
                 clear()
             check_hand_string(hand, hand_string)
-        for i in range(len(hand_png_paths)):
+        for i in range(len(hand_png_paths)-2):
             png.open_file(hand_png_paths[i])
             png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(GREEN)
         for line_idx in range(len(line_placement)):
             line_coords = line_placement[line_idx]
-            print(line_coords)
             if line_idx != hand_idx:
                 display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 2)
             else:
@@ -116,25 +118,27 @@ def hand_view(): # here goes the logic for adding dice to the player hand
             if hand_string[i] != 'D0':
                 display.text(hand_string[i], line_placement[i]['x1'], line_placement[i]['y'] - 35, scale=3)
                 
-        display.text('D' + str(available_sides[selected_no_sides]), 10, 45, wordwrap=240, scale=2)
-        display.text("h_idx" + str(hand_idx), 195, 45, wordwrap=240, scale=2)
+        display.text('D' + str(available_sides[selected_no_sides]), 0, 0, wordwrap=240, scale=4)
+        if hand[hand_idx].number_of_sides == 0:
+            png.open_file(hand_png_paths[2])
+            png.decode(hand_png_placement[2][0], hand_png_placement[2][1], scale=5)
+        else:
+            png.open_file(hand_png_paths[3])
+            png.decode(hand_png_placement[3][0], hand_png_placement[3][1], scale=5)
         display.update()
 
 def roll_view(): # here goes the logic for checking the dice in the hand and rolling the dice and summing the total of the dice. 
-    clear()
+    hand_png_paths = ["back.png"]
+    hand_png_placement = [[0, 195]]
     count_empty = 0
     roll_mode = False
+    clear()
     while True:
         for dice in hand:
             if dice.number_of_sides == 0:
                 count_empty = count_empty + 1
         if button_b.read():
             return clear()
-        #if count_empty > 4:
-        #    display.set_pen(MAGENTA)
-        #    display.text("<- back", 10, 167, wordwrap=240, scale=2)
-        #    display.text("No dice! There are no dice in the player's hand. Please add some in the 'hand'-view from the main menu.", 10, 45, wordwrap=240, scale=2)
-        #    display.update()
             
         display.set_pen(MAGENTA)
         if button_y.read():
