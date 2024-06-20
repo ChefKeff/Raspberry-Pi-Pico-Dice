@@ -24,7 +24,7 @@ display.text("PNG Pencil", 15, 80)
 try:
     # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
     # You can use Thonny to transfer PNG Images to your Pico.
-    png.open_file("rick_splash.png")
+    png.open_file("tova_splash.png")
 
     # Decode our PNG file and set the X and Y
     png.decode(0, 0, scale=1)

@@ -57,6 +57,7 @@ line_placement = [{'x1': 8,
 
 rick_mode = False
 tova_mode = False
+auto_roll = False
 
 
 # sets up a handy function we can call to clear the screen
@@ -125,8 +126,8 @@ def hand_view(): # here goes the logic for adding dice to the player hand THIS I
         display.update()
 
 def roll_view(): # here goes the logic for checking the dice in the hand and rolling the dice and summing the total of the dice. 
-    hand_png_paths = ["back.png", "dice.png"]
-    hand_png_placement = [[0, 195], [275, 195]]
+    hand_png_paths = ["back.png", "dice.png", "rickroll.png", "cat.png", "cat-black.png"]
+    hand_png_placement = [[0, 195], [275, 195], [230, 0]]
     roll_hand = []
     for dice in hand:
         if dice.number_of_sides != 0:
@@ -134,13 +135,16 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
     count_empty = 0
     roll_idx = 0
     roll_mode = False
-    big = True
+    global rick_mode
+    global tova_mode
+    global auto_roll
+    cat_number = randint(3, 4)
     clear()
     while True:
         if button_b.read():
             return clear()
         
-        for i in range(len(hand_png_paths)):
+        for i in range(len(hand_png_paths)-3):
             png.open_file(hand_png_paths[i])
             png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(MAGENTA)
@@ -148,6 +152,14 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             for i in range(len(rolls)):
                 display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 65, scale=3)
             display.text('sum: ' + str(sum(rolls)), 0, 50, scale=5)
+            if rick_mode:
+                png.open_file(hand_png_paths[2])
+                png.decode(hand_png_placement[2][0], hand_png_placement[2][1], scale=10)
+                display.set_pen(MAGENTA)
+            if tova_mode:
+                png.open_file(hand_png_paths[cat_number])
+                png.decode(hand_png_placement[2][0], hand_png_placement[2][1], scale=10)
+                display.set_pen(MAGENTA)
         except:
             print('no rolls yet')
         for line_idx in range(len(line_placement)):
@@ -157,6 +169,7 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
         if button_y.read():
             if not roll_mode:
+                cat_number = randint(3, 4)
                 rolls = []
                 clear()
                 roll_mode = True
@@ -179,10 +192,19 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             dice = roll_hand[roll_idx]
             random = dice.roll_dice()
             display.text(str(random), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)         
-            if button_y.read():
-                if dice.number_of_sides != 0:
-                    rolls.append(dice.roll_dice())
-                    display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+            if button_y.read() or auto_roll:
+                if not rick_mode and not tova_mode:
+                    if dice.number_of_sides != 0:
+                        rolls.append(dice.roll_dice())
+                        display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                elif rick_mode:
+                    if dice.number_of_sides != 0:
+                        rolls.append(1)
+                        display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                elif tova_mode:
+                    if dice.number_of_sides != 0:
+                        rolls.append(dice.number_of_sides)
+                        display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
                 if roll_idx == len(roll_hand)-1:
                     roll_idx = 0
                     clear()
@@ -192,6 +214,8 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
                     roll_mode = False
                 else:
                     roll_idx = roll_idx + 1
+                if auto_roll:
+                    time.sleep(0.5)
                 
             time.sleep(0.01)
             display.update()
@@ -229,15 +253,43 @@ def history_view():
             
         
 def settings_view():
-    settings_png_paths = ["back.png"]
-    settings_png_placement = [[0, 195]]
+    settings_png_paths = ["back.png", "rick_icon.png", "tova_icon.png"]
+    settings_png_placement = [[0, 195], [0, 0]]
+    global rick_mode
+    global tova_mode
+    global auto_roll
     clear()
     while True:
-        display.set_pen(WHITE)
-        display.text("settings", 10, 45, wordwrap=240, scale=3)
+        for i in range(len(settings_png_paths)-2):
+            png.open_file(settings_png_paths[i])
+            png.decode(settings_png_placement[i][0], settings_png_placement[i][1], scale=5)
+        display.set_pen(YELLOW)
+        display.text("auto roll", 180, 0, wordwrap=240, scale=3)
+        display.text("Tova mode", 180, 205, wordwrap=240, scale=3)
         display.update()
         if button_b.read():
             return clear()
+        if button_x.read():
+            auto_roll = not auto_roll
+        if button_y.read():
+            tova_mode = not tova_mode
+        
+        if rick_mode:
+            png.open_file(settings_png_paths[1])
+            png.decode(settings_png_placement[1][0], settings_png_placement[1][1], scale=1)
+            display.set_pen(YELLOW)
+        if tova_mode:
+            png.open_file(settings_png_paths[2])
+            png.decode(settings_png_placement[1][0], settings_png_placement[1][1], scale=1)
+            display.set_pen(YELLOW)
+        else:
+            display.set_pen(BLACK)
+            display.clear()
+            display.set_pen(YELLOW)
+        if auto_roll:
+            display.text("on", 180, 45, wordwrap=240, scale=3)
+        elif not auto_roll:
+            display.text("off", 180, 45, wordwrap=240, scale=3)
     
     
 
