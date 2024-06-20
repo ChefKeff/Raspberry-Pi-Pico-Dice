@@ -1,5 +1,6 @@
 from picographics import PicoGraphics, DISPLAY_PICO_DISPLAY_2, PEN_RGB332
 import pngdec
+import time
 
 # Create a PicoGraphics instance
 display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2, pen_type=PEN_RGB332)
@@ -18,23 +19,21 @@ TEXT = display.create_pen(0, 0, 0)
 display.set_pen(BG)
 display.clear()
 
-display.set_pen(TEXT)
-display.text("PNG Pencil", 15, 80)
+def show_splash(display, png,):
+    start = time.time()
+    while time.time() < start + 2:
+        print(start)
+        try:
+            # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
+            # You can use Thonny to transfer PNG Images to your Pico.
+            png.open_file("rick_splash.png")
 
-try:
-    # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
-    # You can use Thonny to transfer PNG Images to your Pico.
-    png.open_file("tova_splash.png")
+            # Decode our PNG file and set the X and Y
+            png.decode(0, 0, scale=1)
 
-    # Decode our PNG file and set the X and Y
-    png.decode(0, 0, scale=1)
+        # Handle the error if the image doesn't exist on the flash.
+        except OSError:
+            print("Error: PNG File missing. Copy the PNG file from the example folder to your Pico using Thonny and run the example again.")
 
-# Handle the error if the image doesn't exist on the flash.
-except OSError:
-    print("Error: PNG File missing. Copy the PNG file from the example folder to your Pico using Thonny and run the example again.")
-
-display.update()
-
-# We're not doing anything else with the display now but we want to keep the program running!
-while True:
-    pass
+        display.update()
+    return

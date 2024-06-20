@@ -58,6 +58,8 @@ line_placement = [{'x1': 8,
 rick_mode = False
 tova_mode = False
 auto_roll = False
+boot = True
+auto_roll_string = 'off'
 
 
 # sets up a handy function we can call to clear the screen
@@ -129,6 +131,7 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
     hand_png_paths = ["back.png", "dice.png", "rickroll.png", "cat.png", "cat-black.png"]
     hand_png_placement = [[0, 195], [275, 195], [230, 0]]
     roll_hand = []
+    go_back = False
     for dice in hand:
         if dice.number_of_sides != 0:
             roll_hand.append(dice)
@@ -148,6 +151,13 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             png.open_file(hand_png_paths[i])
             png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(MAGENTA)
+        
+        if len(roll_hand) == 0:
+            display.text("no dice in the players' hand, add some from the 'player'-menu", 0, 0, wordwrap=240, scale=3)
+            go_back = True
+                
+                
+        
         try:
             for i in range(len(rolls)):
                 display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 65, scale=3)
@@ -167,58 +177,74 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 2)
         for i in range(len(roll_hand)):
             display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
-        if button_y.read():
+        if button_y.read() and not go_back:
             if not roll_mode:
                 cat_number = randint(3, 4)
                 rolls = []
                 clear()
                 roll_mode = True
         while roll_mode:
+            if auto_roll:
+                for dice in roll_hand:
+                    if not rick_mode and not tova_mode:
+                        if dice.number_of_sides != 0:
+                            rolls.append(dice.roll_dice())
+                    elif rick_mode:
+                        if dice.number_of_sides != 0:
+                            rolls.append(1)
+                    elif tova_mode:
+                        if dice.number_of_sides != 0:
+                            rolls.append(dice.number_of_sides)
+                if len(history) == 5:
+                    history.pop(0)
+                history.append(rolls)
+                roll_mode = False
+              
+            display.update()
             display.set_pen(BLACK)
             display.clear()
             display.set_pen(MAGENTA)
-            
-            for line_idx in range(len(line_placement)):
-                line_coords = line_placement[line_idx]
-                if line_idx == roll_idx:
-                    display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 8)
-                display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 2)
-                    
-            for i in range(len(roll_hand)):
-                display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
-            
-            for i in range(len(rolls)):
-                display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 65, scale=3)
-            dice = roll_hand[roll_idx]
-            random = dice.roll_dice()
-            display.text(str(random), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)         
-            if button_y.read() or auto_roll:
-                if not rick_mode and not tova_mode:
-                    if dice.number_of_sides != 0:
-                        rolls.append(dice.roll_dice())
-                        display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
-                elif rick_mode:
-                    if dice.number_of_sides != 0:
-                        rolls.append(1)
-                        display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
-                elif tova_mode:
-                    if dice.number_of_sides != 0:
-                        rolls.append(dice.number_of_sides)
-                        display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
-                if roll_idx == len(roll_hand)-1:
-                    roll_idx = 0
-                    clear()
-                    if len(history) == 5:
-                        history.pop(0)
-                    history.append(rolls)
-                    roll_mode = False
-                else:
-                    roll_idx = roll_idx + 1
-                if auto_roll:
-                    time.sleep(0.5)
+            if not auto_roll:
+                for line_idx in range(len(line_placement)):
+                    line_coords = line_placement[line_idx]
+                    if line_idx == roll_idx:
+                        display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 8)
+                    display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 2)
+                        
+                for i in range(len(roll_hand)):
+                    display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
                 
-            time.sleep(0.01)
+                for i in range(len(rolls)):
+                    display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 65, scale=3)
+                dice = roll_hand[roll_idx]
+                random = dice.roll_dice()
+                display.text(str(random), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)         
+                if button_y.read():
+                    if not rick_mode and not tova_mode:
+                        if dice.number_of_sides != 0:
+                            rolls.append(dice.roll_dice())
+                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                    elif rick_mode:
+                        if dice.number_of_sides != 0:
+                            rolls.append(1)
+                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                    elif tova_mode:
+                        if dice.number_of_sides != 0:
+                            rolls.append(dice.number_of_sides)
+                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                    if roll_idx == len(roll_hand)-1:
+                        roll_idx = 0
+                        clear()
+                        if len(history) == 5:
+                            history.pop(0)
+                        history.append(rolls)
+                        roll_mode = False
+                    else:
+                        roll_idx = roll_idx + 1
+                    
+                time.sleep(0.01)
             display.update()
+                
         display.update()
     
 def history_view():
@@ -258,6 +284,7 @@ def settings_view():
     global rick_mode
     global tova_mode
     global auto_roll
+    global auto_roll_string
     clear()
     while True:
         for i in range(len(settings_png_paths)-2):
@@ -265,32 +292,29 @@ def settings_view():
             png.decode(settings_png_placement[i][0], settings_png_placement[i][1], scale=5)
         display.set_pen(YELLOW)
         display.text("auto roll", 180, 0, wordwrap=240, scale=3)
-        display.text("Tova mode", 180, 205, wordwrap=240, scale=3)
+        display.text(auto_roll_string, 180, 45, wordwrap=240, scale=3)
+        display.text("Rick mode", 180, 205, wordwrap=240, scale=3)
         display.update()
         if button_b.read():
             return clear()
         if button_x.read():
             auto_roll = not auto_roll
         if button_y.read():
-            tova_mode = not tova_mode
+            rick_mode = not rick_mode
         
         if rick_mode:
+            display.set_pen(BLACK)
+            display.clear()
             png.open_file(settings_png_paths[1])
             png.decode(settings_png_placement[1][0], settings_png_placement[1][1], scale=1)
             display.set_pen(YELLOW)
-        if tova_mode:
-            png.open_file(settings_png_paths[2])
-            png.decode(settings_png_placement[1][0], settings_png_placement[1][1], scale=1)
-            display.set_pen(YELLOW)
-        else:
+        elif not rick_mode:
             display.set_pen(BLACK)
             display.clear()
-            display.set_pen(YELLOW)
         if auto_roll:
-            display.text("on", 180, 45, wordwrap=240, scale=3)
+            auto_roll_string = 'on'
         elif not auto_roll:
-            display.text("off", 180, 45, wordwrap=240, scale=3)
-    
+            auto_roll_string = 'off'
     
 
 
@@ -300,6 +324,18 @@ def settings_view():
 clear()
 
 while True:
+    if boot:
+        start = time.time()
+        while time.time() < start + 4:
+            # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
+            # You can use Thonny to transfer PNG Images to your Pico.
+            png.open_file("rick_splash.png")
+
+            # Decode our PNG file and set the X and Y
+            png.decode(0, 0, scale=1)
+            display.update()
+        boot = False
+        clear()
     if button_a.read():
         hand_view()
     elif button_b.read():
@@ -308,7 +344,7 @@ while True:
         history_view()
     elif button_y.read():
         settings_view()
-    else:
+    if not boot:
         # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
         # You can use Thonny to transfer PNG Images to your Pico.
         for i in range(len(png_paths)):
