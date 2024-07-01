@@ -19,8 +19,6 @@ png_placement = [[0, 0], [230, 0], [0, 150], [230, 150]]
 delim = ','
 with open("presets.json") as f:
     presets = json.load(f)
-    
-print(presets)
 
 
 button_a = Button(12)
@@ -167,28 +165,25 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             for dice in hand:
                 if dice.number_of_sides != 0:
                     roll_hand.append(dice)
-                created_hand = True
+                    created_hand = True
                 
         elif preset_names[preset_idx] != 'hand' and created_hand == False:
             for preset_name, dice in presets.items():
-                print(preset_name)
                 if preset_name == preset_names[preset_idx] and not created_hand:
                     for i in range(len(dice)):
                         if dice[i] != 0:
                             roll_hand.append(Dice(dice[i]))
-                    created_hand = True
-                if go_back:
-                    go_back = not go_back
+                            created_hand = True
         
         for i in range(len(hand_png_paths)-3):
             png.open_file(hand_png_paths[i])
             png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(MAGENTA)
         
-        if len(roll_hand) == 0 and preset_names[preset_idx] == 'hand':
+        if len(roll_hand) == 0:
             go_back = True
-                
-                
+        else:
+            go_back = False
         
         try:
             for i in range(len(rolls)):
@@ -329,7 +324,6 @@ def presets_view(): # here goes the logic for creating presets
     while True:
         # check presets in the json
         for preset_name, dice in presets.items():
-            print(preset_name)
             if dice != [0,0,0,0,0] and preset_name == preset_names[pres_name_idx] and not loaded_preset:
                 for i in range(5):
                     curr_preset[i-1] = Dice(dice[i])
