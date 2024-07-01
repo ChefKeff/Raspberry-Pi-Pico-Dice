@@ -5,6 +5,7 @@ from random import randint
 from pimoroni import Button
 import pngdec
 from picographics import PicoGraphics, DISPLAY_PICO_DISPLAY_2, PEN_RGB332
+import json
 
 # We're only using a few colours so we can use a 4 bit/16 colour palette and save RAM!
 display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2, pen_type=PEN_RGB332, rotate=0)
@@ -14,6 +15,12 @@ display.set_font("bitmap8")
 png = pngdec.PNG(display)
 png_paths = ["user.png", "clock.png", "dice.png", "wrench.png"]
 png_placement = [[0, 0], [230, 0], [0, 150], [230, 150]]
+
+delim = ','
+with open("presets.json") as f:
+    presets = json.load(f)
+    
+print(presets)
 
 
 button_a = Button(12)
@@ -58,7 +65,7 @@ line_placement = [{'x1': 8,
 rick_mode = False
 tova_mode = False
 auto_roll = False
-boot = True
+boot = False
 auto_roll_string = 'off'
 
 
@@ -131,29 +138,54 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
     hand_png_paths = ["back.png", "dice.png", "rickroll.png", "cat.png", "cat-black.png"]
     hand_png_placement = [[0, 195], [275, 195], [230, 0]]
     roll_hand = []
+    preset_names = ['hand', 'p1', 'p2', 'p3', 'p4', 'p5']
+    preset_idx = 0
     go_back = False
-    for dice in hand:
-        if dice.number_of_sides != 0:
-            roll_hand.append(dice)
     count_empty = 0
     roll_idx = 0
     roll_mode = False
     global rick_mode
     global tova_mode
     global auto_roll
+    created_hand = False
+    loaded_preset = False
     cat_number = randint(3, 4)
     clear()
     while True:
         if button_b.read():
             return clear()
         
+        if button_x.read():
+            roll_hand = []
+            preset_idx = preset_idx + 1
+            if preset_idx == 5:
+                preset_idx = 0
+            created_hand = False
+            clear()
+            
+        if preset_names[preset_idx] == 'hand' and created_hand == False:    
+            for dice in hand:
+                if dice.number_of_sides != 0:
+                    roll_hand.append(dice)
+                created_hand = True
+                
+        elif preset_names[preset_idx] != 'hand' and created_hand == False:
+            for preset_name, dice in presets.items():
+                print(preset_name)
+                if preset_name == preset_names[preset_idx] and not created_hand:
+                    for i in range(len(dice)):
+                        if dice[i] != 0:
+                            roll_hand.append(Dice(dice[i]))
+                    created_hand = True
+                if go_back:
+                    go_back = not go_back
+        
         for i in range(len(hand_png_paths)-3):
             png.open_file(hand_png_paths[i])
             png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
         display.set_pen(MAGENTA)
         
-        if len(roll_hand) == 0:
-            display.text("no dice in the players' hand, add some from the 'player'-menu", 0, 0, wordwrap=240, scale=3)
+        if len(roll_hand) == 0 and preset_names[preset_idx] == 'hand':
             go_back = True
                 
                 
@@ -244,6 +276,8 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
                     
                 time.sleep(0.01)
             display.update()
+            
+        display.text(preset_names[preset_idx], 230, 0, scale=3)
                 
         display.update()
     
@@ -276,6 +310,103 @@ def history_view():
             display.update()
             time.sleep(1)
             return clear()
+        
+        
+def presets_view(): # here goes the logic for creating presets
+    hand_png_paths = ["back.png", "save.png", "add.png", "remove.png"]
+    hand_png_placement = [[0,195], [275, 0], [275, 195], [275, 195]]
+    curr_preset = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
+    preset_string = ["D0", "D0", "D0", "D0", "D0"]
+    preset_names = ["p1", "p2", "p3", "p4", "p5"]
+    number_saved_presets = len(presets)
+    clear()
+    hand_idx = 0
+    selected_no_sides = 0
+    available_sides = [2, 4, 6, 8, 10, 12, 20]
+    pres_name_idx = 0
+    loaded_preset = False
+    
+    while True:
+        # check presets in the json
+        for preset_name, dice in presets.items():
+            print(preset_name)
+            if dice != [0,0,0,0,0] and preset_name == preset_names[pres_name_idx] and not loaded_preset:
+                for i in range(5):
+                    curr_preset[i-1] = Dice(dice[i])
+                    preset_string[i-1] = "D" + str(dice[i])
+                loaded_preset = True
+                
+        if button_b.read(): # go back to main
+            return  clear()
+        if button_a.read(): # change the number of sides of the dice to add
+            selected_no_sides = selected_no_sides + 1
+            if selected_no_sides >= len(available_sides):
+                selected_no_sides = 0
+            clear()
+        if button_x.read(): # save the preset and reset the preset hand
+            presets[preset_names[pres_name_idx]] = [
+                curr_preset[0].number_of_sides,
+                curr_preset[1].number_of_sides,
+                curr_preset[2].number_of_sides,
+                curr_preset[3].number_of_sides,
+                curr_preset[4].number_of_sides
+                ]
+            with open("presets.json", "w") as f:
+                json.dump(presets, f)
+            
+            pres_name_idx = pres_name_idx + 1
+            if pres_name_idx == 5:
+                pres_name_idx = 0
+                    
+            curr_preset = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
+            preset_string = ["D0", "D0", "D0", "D0", "D0"]
+            
+            hand_idx = 0
+            
+            loaded_preset = False
+                    
+            
+            clear()
+            
+                
+                
+        if button_y.read(): # add dice to hand
+            if curr_preset[hand_idx].number_of_sides == 0:
+                curr_preset[hand_idx] = Dice(available_sides[selected_no_sides])
+                hand_idx = hand_idx + 1
+                if hand_idx == 5:
+                    hand_idx = 0
+                clear()
+            else:
+                curr_preset[hand_idx] = Dice(0)
+                hand_idx = hand_idx + 1
+                if hand_idx == 5:
+                    hand_idx = 0
+                clear()
+            check_hand_string(curr_preset, preset_string)
+        for i in range(len(hand_png_paths)-2):
+            png.open_file(hand_png_paths[i])
+            png.decode(hand_png_placement[i][0], hand_png_placement[i][1], scale=5)
+        display.set_pen(GREEN)
+        for line_idx in range(len(line_placement)):
+            line_coords = line_placement[line_idx]
+            if line_idx != hand_idx:
+                display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 2)
+            else:
+                display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 8)
+        for i in range(len(hand_string)):
+            if preset_string[i] != 'D0':
+                display.text(preset_string[i], line_placement[i]['x1'], line_placement[i]['y'] - 35, scale=3)
+                
+        display.text('D' + str(available_sides[selected_no_sides]), 0, 0, wordwrap=240, scale=4)
+        display.text(preset_names[pres_name_idx], 230, 0, scale=3)
+        if curr_preset[hand_idx].number_of_sides != 0:
+            png.open_file(hand_png_paths[3])
+            png.decode(hand_png_placement[3][0], hand_png_placement[3][1], scale=5)
+        else:
+            png.open_file(hand_png_paths[2])
+            png.decode(hand_png_placement[2][0], hand_png_placement[2][1], scale=5)
+        display.update()
             
         
 def settings_view():
@@ -293,14 +424,17 @@ def settings_view():
         display.set_pen(YELLOW)
         display.text("auto roll", 180, 0, wordwrap=240, scale=3)
         display.text(auto_roll_string, 180, 45, wordwrap=240, scale=3)
-        display.text("Rick mode", 180, 205, wordwrap=240, scale=3)
+        display.text("Rick mode", 0, 0, wordwrap=240, scale=3)
+        display.text("presets", 180, 195, wordwrap=240, scale=3)
         display.update()
         if button_b.read():
             return clear()
         if button_x.read():
             auto_roll = not auto_roll
-        if button_y.read():
+        if button_a.read():
             rick_mode = not rick_mode
+        if button_y.read():
+            presets_view()
         
         if rick_mode:
             display.set_pen(BLACK)
