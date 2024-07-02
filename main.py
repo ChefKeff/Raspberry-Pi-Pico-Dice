@@ -442,17 +442,17 @@ def settings_view():
         if button_x.read():
             auto_roll = not auto_roll
         if button_a.read():
-            rick_mode = not rick_mode
+            tova_mode = not tova_mode
         if button_y.read():
             presets_view()
         
-        if rick_mode:
+        if tova_mode:
             display.set_pen(BLACK)
             display.clear()
-            png.open_file(settings_png_paths[1])
+            png.open_file(settings_png_paths[2])
             png.decode(settings_png_placement[1][0], settings_png_placement[1][1], scale=1)
             display.set_pen(YELLOW)
-        elif not rick_mode:
+        elif not tova_mode:
             display.set_pen(BLACK)
             display.clear()
         if auto_roll:
