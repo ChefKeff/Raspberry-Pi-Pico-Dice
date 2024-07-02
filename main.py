@@ -21,6 +21,9 @@ button_b = Button(13)
 button_x = Button(14)
 button_y = Button(15)
 
+hand_top_offset = 20
+hand_bottom_offset = 15
+
 WHITE = display.create_pen(255, 255, 255)
 BLACK = display.create_pen(0, 0, 0)
 CYAN = display.create_pen(0, 255, 255)
@@ -36,29 +39,36 @@ class Dice():
         return randint(1, self.number_of_sides)
 
 
-hand = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
-hand_string = ['D0', 'D0', 'D0', 'D0', 'D0']
+hand = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
+hand_string = ['D0', 'D0', 'D0', 'D0', 'D0', 'D0', 'D0']
 history = []
-line_placement = [{'x1': 8,
+line_placement = [{'x1': 1,
                    'y': 180,
-                   'x2': 66},
-                  {'x1': 70,
+                   'x2': 43},
+                  {'x1': 47,
                    'y': 180,
-                   'x2': 128},
-                  {'x1': 132,
+                   'x2': 89},
+                  {'x1': 93,
                    'y': 180,
-                   'x2': 190},
-                  {'x1': 194,
+                   'x2': 135},
+                  {'x1': 139,
                    'y': 180,
-                   'x2': 252},
-                  {'x1': 256,
-                   'x2': 314,
-                   'y': 180}]
+                   'x2': 181},
+                  {'x1': 185,
+                   'y': 180,
+                   'x2': 227},
+                  {'x1': 231,
+                   'y': 180,
+                   'x2': 273},
+                  {'x1': 277,
+                   'y': 180,
+                   'x2': 319}
+                  ]
 
 rick_mode = False
 tova_mode = False
 auto_roll = False
-boot = True
+boot = False
 auto_roll_string = 'off'
 
 
@@ -85,7 +95,7 @@ def hand_view(): # here goes the logic for adding dice to the player hand THIS I
     clear()
     hand_idx = 0
     selected_no_sides = 0
-    available_sides = [2, 4, 6, 8, 10, 12, 20]
+    available_sides = [2, 4, 6, 8, 10, 12, 20, 100]
     while True:
         if button_b.read(): # go back to main
             return  clear()
@@ -96,14 +106,14 @@ def hand_view(): # here goes the logic for adding dice to the player hand THIS I
             clear()
         if button_x.read(): # traverse the hand
             hand_idx = hand_idx + 1
-            if hand_idx == 5:
+            if hand_idx == 7:
                 hand_idx = 0
             clear()
         if button_y.read(): # add dice to hand
             if hand[hand_idx].number_of_sides == 0:
                 hand[hand_idx] = Dice(available_sides[selected_no_sides])
                 hand_idx = hand_idx + 1
-                if hand_idx == 5:
+                if hand_idx == 7:
                     hand_idx = 0
                 clear()
             else:
@@ -122,7 +132,7 @@ def hand_view(): # here goes the logic for adding dice to the player hand THIS I
                 display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 8)
         for i in range(len(hand_string)):
             if hand_string[i] != 'D0':
-                display.text(hand_string[i], line_placement[i]['x1'], line_placement[i]['y'] - 35, scale=3)
+                display.text(hand_string[i], line_placement[i]['x1'], line_placement[i]['y'] - hand_top_offset, scale=2)
                 
         display.text('D' + str(available_sides[selected_no_sides]), 0, 0, wordwrap=240, scale=4)
         if hand[hand_idx].number_of_sides == 0:
@@ -205,7 +215,7 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
             line_coords = line_placement[line_idx]
             display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 2)
         for i in range(len(roll_hand)):
-            display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
+            display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - hand_bottom_offset, scale=2)
         if button_y.read() and not go_back:
             if not roll_mode:
                 cat_number = randint(3, 4)
@@ -241,7 +251,7 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
                     display.line(line_coords['x1'], line_coords['y'] - 35, line_coords['x2'], line_coords['y'] - 35, 2)
                         
                 for i in range(len(roll_hand)):
-                    display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - 10, scale=3)
+                    display.text('D' + str(roll_hand[i].number_of_sides), line_placement[i]['x1'], line_placement[i]['y'] - hand_bottom_offset, scale=2)
                 
                 for i in range(len(rolls)):
                     display.text(str(rolls[i]), line_placement[i]['x1'], line_placement[i]['y'] - 65, scale=3)
@@ -252,15 +262,15 @@ def roll_view(): # here goes the logic for checking the dice in the hand and rol
                     if not rick_mode and not tova_mode:
                         if dice.number_of_sides != 0:
                             rolls.append(dice.roll_dice())
-                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=2)
                     elif rick_mode:
                         if dice.number_of_sides != 0:
                             rolls.append(1)
-                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=2)
                     elif tova_mode:
                         if dice.number_of_sides != 0:
                             rolls.append(dice.number_of_sides)
-                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=3)
+                            display.text(str(rolls[roll_idx]), line_placement[roll_idx]['x1'], line_placement[roll_idx]['y'] - 65, scale=2)
                     if roll_idx == len(roll_hand)-1:
                         roll_idx = 0
                         clear()
@@ -288,7 +298,7 @@ def history_view():
         display.set_pen(WHITE)
         i = 0
         for roll in history[::-1]:
-            display.text(str(roll) + ' sum: ' + str(sum(roll)), 10, 45 + i, wordwrap=310, scale=3)
+            display.text(str(roll) + ' sum: ' + str(sum(roll)), 10, 45 + i, wordwrap=310, scale=2)
             i = i + 30
         display.text('clear presets', 230, 0, wordwrap=100, scale=2)
         display.text('clear history', 230, 200, wordwrap=100, scale=2)
@@ -303,7 +313,12 @@ def history_view():
                 history.pop(0)
             cleared = True
         if button_x.read():
-            cleared_json = {"p1": [0, 0, 0, 0, 0], "p2": [0, 0, 0, 0, 0], "p3": [0, 0, 0, 0, 0], "p4": [0, 0, 0, 0, 0], "p5": [0, 0, 0, 0, 0]}
+            cleared_json = {"p1": [0, 0, 0, 0, 0, 0, 0],
+                            "p2": [0, 0, 0, 0, 0, 0, 0],
+                            "p3": [0, 0, 0, 0, 0, 0, 0],
+                            "p4": [0, 0, 0, 0, 0, 0, 0],
+                            "p5": [0, 0, 0, 0, 0, 0, 0]
+                            }
             with open("presets.json", "w") as f:
                 json.dump(cleared_json, f)
             pres_cleared = True
@@ -329,14 +344,14 @@ def presets_view(): # here goes the logic for creating presets
     presets = read_presets()
     hand_png_paths = ["back.png", "save.png", "add.png", "remove.png"]
     hand_png_placement = [[0,195], [275, 0], [275, 195], [275, 195]]
-    curr_preset = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
-    preset_string = ["D0", "D0", "D0", "D0", "D0"]
+    curr_preset = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
+    preset_string = ["D0", "D0", "D0", "D0", "D0", "D0", "D0"]
     preset_names = ["p1", "p2", "p3", "p4", "p5"]
     number_saved_presets = len(presets)
     clear()
     hand_idx = 0
     selected_no_sides = 0
-    available_sides = [2, 4, 6, 8, 10, 12, 20]
+    available_sides = [2, 4, 6, 8, 10, 12, 20, 100]
     pres_name_idx = 0
     loaded_preset = False
     
@@ -355,7 +370,9 @@ def presets_view(): # here goes the logic for creating presets
                 curr_preset[1].number_of_sides,
                 curr_preset[2].number_of_sides,
                 curr_preset[3].number_of_sides,
-                curr_preset[4].number_of_sides
+                curr_preset[4].number_of_sides,
+                curr_preset[5].number_of_sides,
+                curr_preset[6].number_of_sides
                 ]
             with open("presets.json", "w") as f:
                 json.dump(presets, f)
@@ -364,8 +381,8 @@ def presets_view(): # here goes the logic for creating presets
             if pres_name_idx == 5:
                 pres_name_idx = 0
                     
-            curr_preset = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
-            preset_string = ["D0", "D0", "D0", "D0", "D0"]    
+            curr_preset = [Dice(0), Dice(0), Dice(0), Dice(0), Dice(0), Dice(0), Dice(0)]
+            preset_string = ["D0", "D0", "D0", "D0", "D0", "D0", "D0"]    
             hand_idx = 0 
             loaded_preset = False
             clear()
@@ -376,23 +393,24 @@ def presets_view(): # here goes the logic for creating presets
             if curr_preset[hand_idx].number_of_sides == 0:
                 curr_preset[hand_idx] = Dice(available_sides[selected_no_sides])
                 hand_idx = hand_idx + 1
-                if hand_idx == 5:
+                if hand_idx == 7:
                     hand_idx = 0
                 clear()
             else:
                 curr_preset[hand_idx] = Dice(0)
                 hand_idx = hand_idx + 1
-                if hand_idx == 5:
+                if hand_idx == 7:
                     hand_idx = 0
                 clear()
             check_hand_string(curr_preset, preset_string)
             
                 # check presets in the json
         for preset_name, dice in presets.items():
-            if dice != [0,0,0,0,0] and preset_name == preset_names[pres_name_idx] and not loaded_preset:
-                for i in range(5):
-                    curr_preset[i-1] = Dice(dice[i])
-                    preset_string[i-1] = "D" + str(dice[i])
+            if dice != [0,0,0,0,0,0,0] and preset_name == preset_names[pres_name_idx] and not loaded_preset:
+                print(len(dice), len(curr_preset))
+                for i in range(len(curr_preset)):
+                    curr_preset[i] = Dice(dice[i])
+                    preset_string[i] = "D" + str(dice[i])
                 loaded_preset = True
         for i in range(len(hand_png_paths)-2):
             png.open_file(hand_png_paths[i])
@@ -406,7 +424,7 @@ def presets_view(): # here goes the logic for creating presets
                 display.line(line_coords['x1'], line_coords['y'], line_coords['x2'], line_coords['y'], 8)
         for i in range(len(hand_string)):
             if preset_string[i] != 'D0':
-                display.text(preset_string[i], line_placement[i]['x1'], line_placement[i]['y'] - 35, scale=3)
+                display.text(preset_string[i], line_placement[i]['x1'], line_placement[i]['y'] - hand_top_offset, scale=2)
                 
         display.text('D' + str(available_sides[selected_no_sides]), 0, 0, wordwrap=240, scale=4)
         display.text(preset_names[pres_name_idx], 230, 0, scale=3)       
