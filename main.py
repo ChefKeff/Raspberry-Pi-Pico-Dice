@@ -68,7 +68,7 @@ line_placement = [{'x1': 1,
 rick_mode = False
 tova_mode = False
 auto_roll = False
-boot = False
+boot = True
 auto_roll_string = 'off'
 
 
@@ -452,7 +452,7 @@ def settings_view():
         display.set_pen(YELLOW)
         display.text("auto roll", 180, 0, wordwrap=240, scale=3)
         display.text(auto_roll_string, 180, 45, wordwrap=240, scale=3)
-        display.text("Rick mode", 0, 0, wordwrap=240, scale=3)
+        display.text("Tova mode", 0, 0, wordwrap=240, scale=3)
         display.text("presets", 180, 195, wordwrap=240, scale=3)
         display.update()
         if button_b.read():
@@ -460,14 +460,14 @@ def settings_view():
         if button_x.read():
             auto_roll = not auto_roll
         if button_a.read():
-            rick_mode = not rick_mode
+            tova_mode = not tova_mode
         if button_y.read():
             presets_view()
         
-        if rick_mode:
+        if tova_mode:
             display.set_pen(BLACK)
             display.clear()
-            png.open_file(settings_png_paths[1])
+            png.open_file(settings_png_paths[2])
             png.decode(settings_png_placement[1][0], settings_png_placement[1][1], scale=1)
             display.set_pen(YELLOW)
         elif not rick_mode:
@@ -491,7 +491,7 @@ while True:
         while time.time() < start + 4:
             # Open our PNG File from flash. In this example we're using an image of a cartoon pencil.
             # You can use Thonny to transfer PNG Images to your Pico.
-            png.open_file("rick_splash.png")
+            png.open_file("tova_splash.png")
 
             # Decode our PNG file and set the X and Y
             png.decode(0, 0, scale=1)
